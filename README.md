@@ -1,4 +1,4 @@
-# i3-tmux-vim-nav
+# universal-pane-navigation
 
 # Usage
 In the i3 config replace the default focus bindings with the following:
