@@ -49,10 +49,12 @@ static bool tmux_has_pane_in_direction(const char *session_id, Direction directi
     return strcmp(result, "0") == 0;
 }
 
+// TODO: update both method to return success/failure and take a int pointer for pid
 bool tmux_move_focus(Direction direction, char *buffer, size_t buffer_size){
     int window_pid = x11_get_active_window_pid();
-    int child_pid = get_process_child_pid(window_pid, buffer, buffer_size);
+    if(window_pid == 0) return false;
 
+    int child_pid = get_process_child_pid(window_pid, buffer, buffer_size);
     if(child_pid == 0) return false;
     get_process_cmdline(child_pid, buffer, buffer_size);
 
