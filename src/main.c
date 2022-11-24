@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <inttypes.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <stdbool.h>
 #include <string.h>
-#include <proc/readproc.h>
-
 #include "i3.h"
 #include "tmux.h"
 
