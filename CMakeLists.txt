@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.13)
-project(i3-tmux-vim-nav C)
+project(pane-navigator C)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_executable(i3-tmux-vim-nav src/main.c src/common.c src/i3.c src/tmux.c src/x11.c)
+add_executable(pane-navigator src/main.c src/common.c src/i3.c src/tmux.c src/x11.c)
 include_directories(src/include)
+target_link_libraries(pane-navigator libxdo.so libprocps.so)
 
-target_link_libraries(i3-tmux-vim-nav libxdo.so libprocps.so)
+install(TARGETS pane-navigator DESTINATION bin)
