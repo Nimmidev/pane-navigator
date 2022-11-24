@@ -5,7 +5,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_executable(i3-tmux-vim-nav src/main.c src/common.c src/i3.c)
+add_executable(i3-tmux-vim-nav src/main.c src/common.c src/i3.c src/tmux.c src/x11.c)
 include_directories(src/include)
 
 target_link_libraries(i3-tmux-vim-nav libxdo.so libprocps.so)

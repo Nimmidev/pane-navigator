@@ -12,5 +12,7 @@ typedef enum Direction {
 } Direction;
 
 void get_cmd_output(const char *cmd, char *buffer, size_t buffer_size);
+int get_process_child_pid(int pid, char *buffer, size_t buffer_size);
+void get_process_cmdline(int pid, char *buffer, size_t buffer_size);
 
 #endif

@@ -5,6 +5,13 @@
 
 #include "i3.h"
 
+const char *i3_dir_name[] = {
+    "up",
+    "down",
+    "left",
+    "right"
+};
+
 struct __attribute__((__packed__)) i3_ipc_message {
     char magic_str[6];
     int32_t payload_size;
