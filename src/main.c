@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -8,19 +9,13 @@
 #include <string.h>
 #include <proc/readproc.h>
 
+#include "i3.h"
+
 
 #define BUF_SIZE 100
 
-typedef enum Direction {
-    DIRECTION_UP = 0,
-    DIRECTION_DOWN,
-    DIRECTION_LEFT,
-    DIRECTION_RIGHT,
-    DIRECTION_COUNT
-} Direction;
-
-const char DirectionFlag[] = { 'U', 'D', 'L', 'R' };
-const char *DirectionName[] = {
+const char tmux_dir_flag[] = { 'U', 'D', 'L', 'R' };
+const char *tmux_dir_name[] = {
     "top",
     "bottom",
     "left",
@@ -52,18 +47,12 @@ void get_process_cmdline(int pid, char *buffer){
     fclose(fp);
 }
 
-void get_cmd_output(const char *cmd, char *buffer){
-    FILE *fp = popen(cmd, "r");
-    fread(buffer, 1, BUFSIZ, fp);
-    fclose(fp);
-}
-
 void get_tmux_session_id_by_pid(int pid, char *buffer){
     char pts[20];
     snprintf(buffer, BUF_SIZE, "/proc/%d/fd/0", pid);
     realpath(buffer, pts);
 
-    get_cmd_output("tmux list-clients -F '#{client_tty} #{client_session}'", buffer);
+    get_cmd_output("tmux list-clients -F '#{client_tty} #{client_session}'", buffer, BUF_SIZE);
     char *line_start, *session_id_start;
     char *iter = line_start = buffer;
 
@@ -87,9 +76,9 @@ void get_tmux_session_id_by_pid(int pid, char *buffer){
 }
 
 bool has_pane_in_direction(const char *session_id, Direction direction, char *buffer){
-    snprintf(buffer, BUF_SIZE, "tmux display-message -t %s: -p '#{pane_at_%s}'", session_id, DirectionName[direction]);
+    snprintf(buffer, BUF_SIZE, "tmux display-message -t %s: -p '#{pane_at_%s}'", session_id, tmux_dir_name[direction]);
     char result[2];
-    get_cmd_output(buffer, result);
+    get_cmd_output(buffer, result, BUF_SIZE);
     result[1] = '\0';
 
     return strcmp(result, "0") == 0;
@@ -106,7 +95,7 @@ bool navigate_in_direction(Direction direction, char *buffer){
         strcpy(session_id, buffer);
 
         if(has_pane_in_direction(session_id, direction, buffer)){
-            snprintf(buffer, BUF_SIZE, "tmux select-pane -%c -t %s:", DirectionFlag[direction], session_id);
+            snprintf(buffer, BUF_SIZE, "tmux select-pane -%c -t %s:", tmux_dir_flag[direction], session_id);
             printf("%d\n", direction);
             system(buffer);
             return true;
@@ -126,7 +115,7 @@ int main(int argc, char **argv){
     }
 
     for(int i = 0; i < DIRECTION_COUNT; i++){
-        if(strcmp(argv[1], DirectionName[i]) == 0){
+        if(strcmp(argv[1], i3_dir_name[i]) == 0){
             direction = i;
             break;
         }
@@ -138,7 +127,7 @@ int main(int argc, char **argv){
     }
 
     bool success = navigate_in_direction(direction, buffer);
-    if(!success) return 1;
+    if(!success) i3_move_focus(direction);
 
     return 0;
 }
