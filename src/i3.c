@@ -32,7 +32,6 @@ size_t i3_create_ipc_message(int32_t type, const char *payload, int32_t payload_
 int i3_ipc_connect(){
     int fd;
     struct sockaddr_un addr;
-    const char *cmd = "focus left";
 
     char socket_path[1024], *iter = socket_path;
     get_cmd_output("i3 --get-socketpath", socket_path, 1024);
