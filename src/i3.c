@@ -35,8 +35,6 @@ int i3_ipc_connect(){
 
     char socket_path[1024], *iter = socket_path;
     get_cmd_output("i3 --get-socketpath", socket_path, 1024);
-    while(*(++iter) != '\n');
-    *iter = '\0';
 
     addr.sun_family = AF_LOCAL;
     strcpy(addr.sun_path, socket_path);

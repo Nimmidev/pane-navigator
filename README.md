@@ -21,5 +21,6 @@ bindsym $mod+$right exec --no-startup-id pane-navigator right
 # Development Status
 - [x] i3 support
 - [x] tmux support
-- [x] vim support in tmux
-- [ ] vim support
+- [x] vim support in terminal
+- [x] vim support in shell
+- [x] vim support in tmux/shell

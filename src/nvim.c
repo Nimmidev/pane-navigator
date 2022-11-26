@@ -7,13 +7,13 @@
 #include "nvim.h"
 #include "tmux.h"
 
-#define NVIM_MAX_OPEN_SPLITS 32
+#define NVIM_MAX_OPEN_WINDOWS 16
 #define ASSERT(s) assert(s);
 // #define DEBUG(s) s
 #define DEBUG(s)
 
 typedef struct {
-    int16_t arr[NVIM_MAX_OPEN_SPLITS];
+    int16_t arr[NVIM_MAX_OPEN_WINDOWS];
     size_t length;
 } WindowIdArray;
 
@@ -23,10 +23,14 @@ typedef struct {
 } WindowPos;
 
 typedef struct {
+    WindowPos pos;
+    int16_t id;
+} Window;
+
+typedef struct {
     int fd;
     int64_t msg_id;
-    int16_t win_id;
-    WindowPos win_pos;
+    Window win;
     WindowIdArray win_ids;
 } NvimState;
 
@@ -135,7 +139,7 @@ static void nvim_unpack(msgpack_sbuffer *sbuf, NvimCommand *command, void *out){
 static void nvim_unpack_list_wins(msgpack_object *result, void *out){
     ASSERT(result->type != 0)
     msgpack_object_array ids = result->via.array.ptr[3].via.array;
-    ASSERT(ids.size <= NVIM_MAX_OPEN_SPLITS)
+    ASSERT(ids.size <= NVIM_MAX_OPEN_WINDOWS)
 
     WindowIdArray *arr = out;
     arr->length = ids.size & 0xff;
@@ -183,7 +187,7 @@ static bool nvim_rpc(NvimState *nvim, NvimCommand *command, void *args, void *ou
 
     char buffer[1024] = {0};
     sbuf.size = 0;
-    sbuf.alloc = 1024;
+    sbuf.alloc = sizeof(buffer);
     sbuf.data = buffer;
 
     if((sbuf.size = recv(nvim->fd, sbuf.data, sbuf.alloc, 0)) == -1){
@@ -198,73 +202,83 @@ static bool nvim_rpc(NvimState *nvim, NvimCommand *command, void *args, void *ou
     return true;
 }
 
-static bool nvim_get_win_in_direction(NvimState *nvim, Direction direction, int16_t *window_id){
-    if(direction == DIRECTION_UP){
-        if(nvim->win_pos.y == 0) return false;
-    } else if(direction == DIRECTION_LEFT){
-        if(nvim->win_pos.x == 0) return false;
-    }
-
-    int best_value = INT_MAX;
-    WindowPos pos;
-
-    if(direction == DIRECTION_UP || direction == DIRECTION_LEFT) best_value = INT_MIN;
+static bool nvim_get_windows(NvimState *nvim, Window *windows, size_t length){
+    assert(nvim->win_ids.length <= length);
 
     for(int i = 0; i < nvim->win_ids.length; i++){
-        if(nvim->win_ids.arr[i] == nvim->win_id) continue;
-        if(!nvim_rpc(nvim, &nvim_win_get_position, &nvim->win_ids.arr[i], &pos)) exit(1);
+        if(nvim->win_ids.arr[i] == nvim->win.id) continue;
+        if(!nvim_rpc(nvim, &nvim_win_get_position, &nvim->win_ids.arr[i], &windows[i].pos)) return false;
+        windows[i].id = nvim->win_ids.arr[i];
+    }
 
-        pos.x = pos.x - nvim->win_pos.x;
-        pos.y = pos.y - nvim->win_pos.y;
+    return true;
+}
 
-        if(direction == DIRECTION_UP){
-            if(pos.y < 0 && pos.y > best_value){
-                best_value = pos.y;
-                *window_id = nvim->win_ids.arr[i];
-            }
-        } else if(direction == DIRECTION_DOWN){
-            if(pos.y > 0 && pos.y < best_value){
-                best_value = pos.y;
-                *window_id = nvim->win_ids.arr[i];
-            }
-        } else if(direction == DIRECTION_LEFT){
-            if(pos.x < 0 && pos.x > best_value){
-                best_value = pos.x;
-                *window_id = nvim->win_ids.arr[i];
-            }
-        } else if(direction == DIRECTION_RIGHT){
-            if(pos.x > 0 && pos.x < best_value){
-                best_value = pos.x;
-                *window_id = nvim->win_ids.arr[i];
-            }
+static inline bool nvim_get_win_horizontal(NvimState *nvim, int16_t *window_id, bool swap_x){
+    Window windows[NVIM_MAX_OPEN_WINDOWS];
+    WindowPos best = { .x = INT32_MAX, .y = INT32_MAX };
+    if(!nvim_get_windows(nvim, windows, NVIM_MAX_OPEN_WINDOWS)) return false;
+
+    for(int i = 0; i < nvim->win_ids.length; i++){
+        WindowPos pos = {
+            .x = windows[i].pos.x - nvim->win.pos.x,
+            .y = windows[i].pos.y - nvim->win.pos.y
+        };
+
+        if(swap_x) pos.x = nvim->win.pos.x - windows[i].pos.x;
+
+        if(pos.x > 0 && (pos.x < best.x && abs(pos.y) <= best.y || abs(pos.y) < best.y)){
+            best.y = abs(pos.y);
+            best.x = pos.x;
+            *window_id = nvim->win_ids.arr[i];
         }
     }
 
     return *window_id != 0;
 }
 
-bool nvim_move_focus(const char *socket_path, Direction direction){
-    NvimState nvim = {0};
-    nvim.fd = nvim_ipc_connect(socket_path);
+static inline bool nvim_get_win_vertical(NvimState *nvim, int16_t *window_id, bool swap_y){
+    Window windows[NVIM_MAX_OPEN_WINDOWS];
+    WindowPos best = { .x = INT32_MAX, .y = INT32_MAX };
+    if(!nvim_get_windows(nvim, windows, NVIM_MAX_OPEN_WINDOWS)) return false;
 
-    if(!nvim_rpc(&nvim, &nvim_list_wins, NULL, &nvim.win_ids)) exit(1);
+    for(int i = 0; i < nvim->win_ids.length; i++){
+        WindowPos pos = {
+            .x = windows[i].pos.x - nvim->win.pos.x,
+            .y = windows[i].pos.y - nvim->win.pos.y
+        };
 
-    if(nvim.win_ids.length != 1){
-        if(!nvim_rpc(&nvim, &nvim_get_current_win, &nvim.win_id, &nvim.win_id)) exit(1);
-        if(!nvim_rpc(&nvim, &nvim_win_get_position, &nvim.win_id, &nvim.win_pos)) exit(1);
+        if(swap_y) pos.y = nvim->win.pos.y - windows[i].pos.y;
 
-        int16_t window_id;
-        if(nvim_get_win_in_direction(&nvim, direction, &window_id)){
-            return nvim_rpc(&nvim, &nvim_set_current_win, &window_id, NULL);
+        if(pos.y > 0 && (pos.y < best.y && abs(pos.x) <= best.x || abs(pos.x) < best.x)){
+            best.y = pos.y;
+            best.x = abs(pos.x);
+            *window_id = nvim->win_ids.arr[i];
         }
     }
+
+    return *window_id != 0;
+}
+
+
+static bool nvim_get_win_in_direction(NvimState *nvim, Direction direction, int16_t *window_id){
+    if(direction == DIRECTION_UP){
+        if(nvim->win.pos.y == 0) return false;
+    } else if(direction == DIRECTION_LEFT){
+        if(nvim->win.pos.x == 0) return false;
+    }
+
+    if(direction == DIRECTION_UP) return nvim_get_win_vertical(nvim, window_id, true);
+    else if(direction == DIRECTION_DOWN) return nvim_get_win_vertical(nvim, window_id, false);
+    else if(direction == DIRECTION_LEFT) return nvim_get_win_horizontal(nvim, window_id, true);
+    else if(direction == DIRECTION_RIGHT) return nvim_get_win_horizontal(nvim, window_id, false);
 
     return false;
 }
 
-void nvim_get_socket_path(int pid, char *buffer, size_t buffer_size){
+static void nvim_get_socket_path(int pid, char *buffer, size_t buffer_size){
     char pid_str[10];
-    snprintf(pid_str, 10, "%d", pid);
+    snprintf(pid_str, sizeof(pid_str), "%d", pid);
 
     memset(buffer, 0, buffer_size);
     strcpy(buffer, getenv("XDG_RUNTIME_DIR"));
@@ -273,15 +287,24 @@ void nvim_get_socket_path(int pid, char *buffer, size_t buffer_size){
     strcat(buffer, ".0");
 }
 
-bool nvim_get_pid(const char *tmux_session_id, int *nvim_pid){
-    char buffer[32];
-    int pid = tmux_get_pane_pid(tmux_session_id);
-    if(pid == 0) return false;
+bool nvim_move_focus(int pid, Direction direction){
+    NvimState nvim = {0};
+    char socket_path[64];
 
-    *nvim_pid = get_process_child_pid(pid);
-    if(*nvim_pid == 0) return false;
-    get_process_cmdline(*nvim_pid, buffer, 32);
+    nvim_get_socket_path(pid, socket_path, sizeof(socket_path));
+    nvim.fd = nvim_ipc_connect(socket_path);
 
-    return strcmp(buffer, "nvim") == 0;
+    if(!nvim_rpc(&nvim, &nvim_list_wins, NULL, &nvim.win_ids)) exit(1);
+
+    if(nvim.win_ids.length != 1){
+        if(!nvim_rpc(&nvim, &nvim_get_current_win, &nvim.win.id, &nvim.win.id)) exit(1);
+        if(!nvim_rpc(&nvim, &nvim_win_get_position, &nvim.win.id, &nvim.win.pos)) exit(1);
+
+        int16_t window_id = 0;
+        if(nvim_get_win_in_direction(&nvim, direction, &window_id)){
+            return nvim_rpc(&nvim, &nvim_set_current_win, &window_id, NULL);
+        }
+    }
+
+    return false;
 }
-
