@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "x11.h"
+#include "nvim.h"
 #include "tmux.h"
 
 static const char tmux_dir_flag[] = { 'U', 'D', 'L', 'R' };
@@ -49,23 +50,48 @@ static bool tmux_has_pane_in_direction(const char *session_id, Direction directi
     return strcmp(result, "0") == 0;
 }
 
-// TODO: update both method to return success/failure and take a int pointer for pid
-bool tmux_move_focus(Direction direction, char *buffer, size_t buffer_size){
+int tmux_get_pane_pid(const char *session_id){
+    char buffer[128];
+    snprintf(buffer, 128, "tmux display-message -t %s: -p -F '#{pane_pid}'", session_id);
+    char result[10], *iter = result;
+    get_cmd_output(buffer, result, 10);
+    while(*(++iter) != '\n');
+    *iter = '\0';
+
+    return strtol(result, NULL, 10);
+}
+
+
+static bool tmux_get_pid(int *pid){
     int window_pid = x11_get_active_window_pid();
     if(window_pid == 0) return false;
 
-    int child_pid = get_process_child_pid(window_pid, buffer, buffer_size);
+    int child_pid = *pid = get_process_child_pid(window_pid);
     if(child_pid == 0) return false;
-    get_process_cmdline(child_pid, buffer, buffer_size);
 
-    if(strcmp(buffer, "tmux") == 0){
-        tmux_get_session_by_pid(child_pid, buffer, buffer_size);
+    char buffer[32];
+    get_process_cmdline(child_pid, buffer, 32);
+
+    return strcmp(buffer, "tmux") == 0;
+}
+
+// TODO: update both method to return success/failure and take a int pointer for pid
+bool tmux_move_focus(Direction direction, char *buffer, size_t buffer_size){
+    int tmux_pid;
+
+    if(tmux_get_pid(&tmux_pid)){
+        tmux_get_session_by_pid(tmux_pid, buffer, buffer_size);
         char session_id[10];
         strcpy(session_id, buffer);
 
+        int nvim_pid;
+        if(nvim_get_pid(session_id, &nvim_pid)){
+            nvim_get_socket_path(nvim_pid, buffer, buffer_size);
+            bool moved = nvim_move_focus(buffer, direction);
+            if(moved) return true;
+        } 
         if(tmux_has_pane_in_direction(session_id, direction, buffer, buffer_size)){
             snprintf(buffer, buffer_size, "tmux select-pane -%c -t %s:", tmux_dir_flag[direction], session_id);
-            printf("%d\n", direction);
             system(buffer);
             return true;
         }

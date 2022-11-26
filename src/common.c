@@ -8,11 +8,12 @@ void get_cmd_output(const char *cmd, char *buffer, size_t buffer_size){
     fclose(fp);
 }
 
-int get_process_child_pid(int pid, char *buffer, size_t buffer_size){
-    snprintf(buffer, buffer_size, "/proc/%d/task/%d/children", pid, pid);
+int get_process_child_pid(int pid){
+    char buffer[50];
+    snprintf(buffer, 50, "/proc/%d/task/%d/children", pid, pid);
 
     FILE *fp = fopen(buffer, "r");
-    fread(buffer, 1, buffer_size, fp);
+    fread(buffer, 1, 50, fp);
     fclose(fp);
 
     return strtol(buffer, NULL, 10);
