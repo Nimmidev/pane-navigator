@@ -40,12 +40,12 @@ int i3_ipc_connect(){
     strcpy(addr.sun_path, socket_path);
 
     if((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0){
-        fprintf(stderr, "socket error");
+        fprintf(stderr, "i3 socket error");
         exit(1);
     }
 
     if(connect(fd, (struct sockaddr *) &addr, sizeof(addr)) != 0){
-        fprintf(stderr, "socket connect error");
+        fprintf(stderr, "i3 socket connect error");
         exit(1);
     }
 
@@ -57,16 +57,16 @@ void i3_ipc_send(int fd, struct i3_ipc_message *message, size_t message_bytes){
     char buffer[1024];
 
     if(send(fd, message, message_bytes, 0) == -1){
-        fprintf(stderr, "socket send error");
+        fprintf(stderr, "i3 socket send error");
         exit(1);
     }
 
     while((bytes_received = recv(fd, buffer, 1024, 0)) > 0){
         struct i3_ipc_message *message = (struct i3_ipc_message *) &buffer;
-        printf("magic_str: %s\n", message->magic_str);
-        printf("payload_size: %u\n", message->payload_size);
-        printf("type: %u\n", message->type);
-        printf("payload: %s\n", message->payload);
+        DEBUG(printf("magic_str: %s\n", message->magic_str);)
+        DEBUG(printf("payload_size: %u\n", message->payload_size);)
+        DEBUG(printf("type: %u\n", message->type);)
+        DEBUG(printf("payload: %s\n", message->payload);)
     }
 }
 

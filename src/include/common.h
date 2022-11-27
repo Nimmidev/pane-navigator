@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define ASSERT(s) assert(s);
+// #define DEBUG(s) s
+#define DEBUG(s)
+
 typedef enum Direction {
     DIRECTION_UP = 0,
     DIRECTION_DOWN,

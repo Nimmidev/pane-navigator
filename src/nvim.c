@@ -8,9 +8,6 @@
 #include "tmux.h"
 
 #define NVIM_MAX_OPEN_WINDOWS 16
-#define ASSERT(s) assert(s);
-// #define DEBUG(s) s
-#define DEBUG(s)
 
 typedef struct {
     int16_t arr[NVIM_MAX_OPEN_WINDOWS];
@@ -93,12 +90,12 @@ static int nvim_ipc_connect(const char *socket_path){
     strcpy(addr.sun_path, socket_path);
 
     if((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0){
-        fprintf(stderr, "socket error");
+        fprintf(stderr, "nvim socket error");
         exit(1);
     }
 
     if(connect(fd, (struct sockaddr *) &addr, sizeof(addr)) != 0){
-        fprintf(stderr, "socket connect error");
+        fprintf(stderr, "nvim socket connect error");
         exit(1);
     }
 
@@ -179,7 +176,7 @@ static bool nvim_rpc(NvimState *nvim, NvimCommand *command, void *args, void *ou
     DEBUG(nvim_unpack(&sbuf, NULL, NULL);)
 
     if(send(nvim->fd, sbuf.data, sbuf.size, 0) == -1){
-        fprintf(stderr, "Error sending data\n");
+        fprintf(stderr, "nvim error sending data\n");
         return false;
     }
 
@@ -191,7 +188,7 @@ static bool nvim_rpc(NvimState *nvim, NvimCommand *command, void *args, void *ou
     sbuf.data = buffer;
 
     if((sbuf.size = recv(nvim->fd, sbuf.data, sbuf.alloc, 0)) == -1){
-        fprintf(stderr, "Error receiving data\n");
+        fprintf(stderr, "nvim error receiving data\n");
         return false;
     }
 
