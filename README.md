@@ -24,3 +24,6 @@ bindsym $mod+$right exec --no-startup-id pane-navigator right
 - [x] vim support in terminal
 - [x] vim support in shell
 - [x] vim support in tmux/shell
+
+# Caveats
+- The pane navigation inside vim does currently not match vim's native behavior on complex pane layouts
