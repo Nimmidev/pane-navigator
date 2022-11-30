@@ -18,10 +18,10 @@ make install
 # Usage
 In the i3 config replace the default focus bindings with the following:
 ```
-bindsym $mod+$left exec --no-startup-id pane-navigator left
-bindsym $mod+$down exec --no-startup-id pane-navigator down
-bindsym $mod+$up exec --no-startup-id pane-navigator up
-bindsym $mod+$right exec --no-startup-id pane-navigator right
+bindsym $mod+h exec --no-startup-id pane-navigator left
+bindsym $mod+j exec --no-startup-id pane-navigator down
+bindsym $mod+k exec --no-startup-id pane-navigator up
+bindsym $mod+l exec --no-startup-id pane-navigator right
 ```
 
 # Development Status
