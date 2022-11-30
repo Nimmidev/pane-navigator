@@ -5,11 +5,15 @@
 #include "nvim.h"
 
 const char *terminal_class_names[] = {
-    "Alacritty"
+    "Alacritty",
+    "kitty"
 };
 
 const char *shell_names[] = {
-    "bash"
+    "sh",
+    "bash",
+    "zsh",
+    "fish"
 };
 const size_t shell_names_length = sizeof(shell_names) / sizeof(char *);
 
