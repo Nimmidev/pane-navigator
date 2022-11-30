@@ -4,10 +4,8 @@
 #include "tmux.h"
 #include "nvim.h"
 
-
 const char *terminal_class_names[] = {
-    "Alacritty",
-    "test"
+    "Alacritty"
 };
 
 const char *shell_names[] = {
@@ -20,12 +18,14 @@ static inline bool is_nvim_cmdline(const char *cmdline){
     return strcmp(cmdline, "vim") == 0 || strcmp(cmdline, "nvim") == 0;
 }
 
-static bool is_nvim_in_shell(int pid, int *nvim_pid, size_t shell_cmdline_offset){
+static bool is_nvim_in_shell(int pid, int *nvim_pid){
     char buffer[1024];
 
     if(!get_process_cmdline(pid, buffer, sizeof(buffer))) return false;
     for(int i = 0; i < shell_names_length; i++){
-        if(strcmp(buffer + shell_cmdline_offset, shell_names[i]) == 0){
+        char *match = strstr(buffer, shell_names[i]);
+
+        if(match != NULL && match - buffer == strlen(buffer) - strlen(shell_names[i])){
             get_process_child_pid(pid, nvim_pid);
             get_process_cmdline(*nvim_pid, buffer, sizeof(buffer));
 
@@ -49,13 +49,13 @@ static inline void move_pane(Direction direction){
                 get_process_child_pid(window_info.pid, &child_pid);
                 get_process_cmdline(child_pid, buffer, sizeof(buffer));
 
-                if(is_nvim_cmdline(buffer) || is_nvim_in_shell(child_pid, &child_pid, 0)){
+                if(is_nvim_cmdline(buffer) || is_nvim_in_shell(child_pid, &child_pid)){
                     moved = nvim_move_focus(child_pid, direction);
                 } else if(strcmp(buffer, "tmux") == 0) {
                     char session_id[16];
                     if(!tmux_get_session_id(child_pid, session_id, sizeof(session_id))) break;
                     if(!tmux_get_pane_pid(session_id, &child_pid)) break;
-                    if(is_nvim_in_shell(child_pid, &child_pid, 1)) moved = nvim_move_focus(child_pid, direction);
+                    if(is_nvim_in_shell(child_pid, &child_pid)) moved = nvim_move_focus(child_pid, direction);
                     if(!moved) moved = tmux_move_focus(session_id, direction);
                 }
 
