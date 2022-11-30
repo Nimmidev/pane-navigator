@@ -14,7 +14,7 @@ const char *tmux_dir_name[] = {
 
 bool tmux_get_session_id(int pid, char *session_id, size_t session_id_size){
     char pts[20];
-    char buffer[64];
+    char buffer[512];
 
     snprintf(buffer, sizeof(buffer), "/proc/%d/fd/0", pid);
     realpath(buffer, pts);
