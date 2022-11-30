@@ -26,19 +26,19 @@ bool tmux_get_session_id(int pid, char *session_id, size_t session_id_size){
     do {
         if(*iter == ' '){
             *iter = '\0';
-
-            if(strcmp(line_start, pts) == 0){
-                iter++;
-                session_id_start = iter;
-                int s = iter - line_start;
-                while(++iter < buffer + sizeof(buffer) && *iter != '\n');
-                if(iter <= buffer + sizeof(buffer)) *iter = '\0';
-                strcpy(buffer, session_id_start);
-                break;
-            }
         } else if(*iter == '\n'){
             *iter = '\0';
             line_start = iter + 1;
+        }
+
+        if(strcmp(line_start, pts) == 0){
+            iter++;
+            session_id_start = iter;
+            int s = iter - line_start;
+            while(++iter < buffer + sizeof(buffer) && *iter != '\n');
+            if(iter <= buffer + sizeof(buffer)) *iter = '\0';
+            strcpy(buffer, session_id_start);
+            break;
         }
     } while(*(++iter));
 
