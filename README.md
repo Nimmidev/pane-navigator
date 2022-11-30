@@ -1,6 +1,6 @@
 # pane-navigator
 
-This project aims provides a unified way to navigate between between i3, tmux and vim panes/splits with minimal configuration effort. 
+This project aims provides a unified way to navigate between between i3, tmux and **neovim** panes/splits with minimal configuration effort. 
 
 # Dependencies
 - x11
@@ -27,9 +27,9 @@ bindsym $mod+l exec --no-startup-id pane-navigator right
 # Development Status
 - [x] i3 support
 - [x] tmux support
-- [x] vim support in terminal
-- [x] vim support in shell
-- [x] vim support in tmux/shell
+- [x] neovim support in terminal
+- [x] neovim support in shell
+- [x] neovim support in tmux/shell
 
 # Caveats
-- The pane navigation inside vim does currently not match vim's native behavior on complex pane layouts
+- The pane navigation inside neovim does currently not match neovim's native behavior on complex pane layouts
