@@ -8,6 +8,6 @@ typedef struct {
     unsigned char *class;
 } WindowInfo;
 
-bool x11_get_active_window(WindowInfo *window_info);
+bool x11_get_active_window_info(WindowInfo *window_info);
 
 #endif

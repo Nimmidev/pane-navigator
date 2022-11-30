@@ -41,7 +41,7 @@ static inline void move_pane(Direction direction){
     bool moved = false;
     WindowInfo window_info;
 
-    if(x11_get_active_window(&window_info)){
+    if(x11_get_active_window_info(&window_info)){
         size_t length = sizeof(terminal_class_names) / sizeof(char *);
         for(int i = 0; i < length; i++){
             if(strcmp((const char *) window_info.class, terminal_class_names[i]) == 0){
