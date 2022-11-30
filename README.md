@@ -1,6 +1,12 @@
 # pane-navigator
 
 This project aims provides a unified way to navigate between between i3, tmux and vim panes/splits with minimal configuration effort. 
+
+# Dependencies
+- x11
+- libprocps
+- msgpack
+
 # Build/Install
 ```bash
 mkdir build
