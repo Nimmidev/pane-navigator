@@ -15,6 +15,15 @@ If you have another terminal or shell, go into `main.c` and add the shell binary
 - libprocps
 - msgpack
 
+#### Ubuntu
+```
+sudo apt install libmsgpack-dev libprocps-dev libx11-dev
+```
+#### Arch Linux
+```
+sudo pacman -S msgpack-c procps-ng libx11 --needed
+```
+
 # Build/Install
 ```bash
 mkdir build
