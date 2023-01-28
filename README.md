@@ -45,9 +45,9 @@ It might be useful to keep the default `focus` bindings around on an additional 
 
 ```
 bindsym $mod+Mod1+h focus left
-bindsym $mod+Mod1+j down focus down
+bindsym $mod+Mod1+j focus down
 bindsym $mod+Mod1+k focus up
-bindsym $mod+Mod1+lright focus right
+bindsym $mod+Mod1+l focus right
 ```
 
 # Development Status
@@ -59,3 +59,4 @@ bindsym $mod+Mod1+lright focus right
 
 # Caveats
 - The pane navigation inside neovim does currently not match neovim's native behavior on complex pane layouts
+- Navigation to/from neovim does not work if there is an error in neovim because the RPC is unresponsive in the meantime.
