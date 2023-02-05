@@ -73,7 +73,7 @@ int main(int argc, char **argv){
     Direction direction = -1;
 
     if(argc < 2){
-        fprintf(stderr, "Missing argument direction. Possible options: top, bottom, left, right\n");
+        fprintf(stderr, "Missing argument direction. Possible options: up, down, left, right\n");
         return 1;
     }
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv){
     }
 
     if(direction == -1){
-        fprintf(stderr, "Unsupported direction. Valid options are: top, bottom, left, right\n");
+        fprintf(stderr, "Unsupported direction. Valid options are: up, down, left, right\n");
         return 1;
     }
 
