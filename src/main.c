@@ -15,7 +15,6 @@ const char *shell_names[] = {
     "zsh",
     "fish"
 };
-const size_t shell_names_length = sizeof(shell_names) / sizeof(char *);
 
 
 static inline bool is_nvim_cmdline(const char *cmdline){
@@ -26,7 +25,8 @@ static bool is_nvim_in_shell(int pid, int *nvim_pid){
     char buffer[1024];
 
     if(!get_process_cmdline(pid, buffer, sizeof(buffer))) return false;
-    for(int i = 0; i < shell_names_length; i++){
+
+    for(int i = 0; i < sizeof(shell_names) / sizeof(char *); i++){
         char *match = strstr(buffer, shell_names[i]);
 
         if(match != NULL && match - buffer == strlen(buffer) - strlen(shell_names[i])){
@@ -46,8 +46,7 @@ static inline void move_pane(Direction direction){
     WindowInfo window_info;
 
     if(x11_get_active_window_info(&window_info)){
-        size_t length = sizeof(terminal_class_names) / sizeof(char *);
-        for(int i = 0; i < length; i++){
+        for(int i = 0; i < sizeof(terminal_class_names) / sizeof(char *); i++){
             if(strcmp((const char *) window_info.class, terminal_class_names[i]) == 0){
                 int child_pid;
                 get_process_child_pid(window_info.pid, &child_pid);
