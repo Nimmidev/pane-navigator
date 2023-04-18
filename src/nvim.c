@@ -288,6 +288,7 @@ bool nvim_move_focus(int pid, Direction direction){
     NvimState nvim = {0};
     char socket_path[64];
 
+    get_process_child_pid(pid, &pid);
     nvim_get_socket_path(pid, socket_path, sizeof(socket_path));
     nvim.fd = nvim_ipc_connect(socket_path);
 
