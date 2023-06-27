@@ -21,14 +21,13 @@ sudo apt install libmsgpack-dev libprocps-dev libx11-dev
 ```
 #### Arch Linux
 ```
-sudo pacman -S msgpack-c procps-ng libx11 --needed
+sudo pacman -S msgpack-c libprocps libx11 --needed
 ```
 
 # Build/Install
 ```bash
-mkdir build
-cd build
-cmake ..
+./setup.sh
+cd build/Release
 make install
 ```
 
