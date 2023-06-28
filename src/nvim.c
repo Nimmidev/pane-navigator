@@ -217,6 +217,8 @@ static inline bool nvim_get_win_horizontal(NvimState *nvim, int16_t *window_id, 
     if(!nvim_get_windows(nvim, windows, NVIM_MAX_OPEN_WINDOWS)) return false;
 
     for(int i = 0; i < nvim->win_ids.length; i++){
+        if(nvim->win_ids.arr[i] == nvim->win.id) continue;
+
         WindowPos pos = {
             .x = windows[i].pos.x - nvim->win.pos.x,
             .y = windows[i].pos.y - nvim->win.pos.y
@@ -240,6 +242,8 @@ static inline bool nvim_get_win_vertical(NvimState *nvim, int16_t *window_id, bo
     if(!nvim_get_windows(nvim, windows, NVIM_MAX_OPEN_WINDOWS)) return false;
 
     for(int i = 0; i < nvim->win_ids.length; i++){
+        if(nvim->win_ids.arr[i] == nvim->win.id) continue;
+
         WindowPos pos = {
             .x = windows[i].pos.x - nvim->win.pos.x,
             .y = windows[i].pos.y - nvim->win.pos.y
