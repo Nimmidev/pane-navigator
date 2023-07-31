@@ -1,6 +1,6 @@
 #!/bin/sh
 
-BUILD_TYPES=("Debug" "Release")
+BUILD_TYPES=("debug" "release")
 
 rm -r build &> /dev/null
 mkdir build
