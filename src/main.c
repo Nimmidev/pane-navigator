@@ -26,10 +26,12 @@ static bool is_nvim_in_shell(int pid, int *nvim_pid){
 
     if(!get_process_cmdline(pid, buffer, sizeof(buffer))) return false;
 
-    for(int i = 0; i < sizeof(shell_names) / sizeof(char *); i++){
+    int shell_name_count = sizeof(shell_names) / sizeof(char *);
+    for(int i = 0; i < shell_name_count; i++){
         char *match = strstr(buffer, shell_names[i]);
 
-        if(match != NULL && match - buffer == strlen(buffer) - strlen(shell_names[i])){
+        long cmdline_start = strlen(buffer) - strlen(shell_names[i]);
+        if(match != NULL && match - buffer == cmdline_start){
             get_process_child_pid(pid, nvim_pid);
             get_process_cmdline(*nvim_pid, buffer, sizeof(buffer));
 
@@ -46,7 +48,8 @@ static inline void move_pane(Direction direction){
     WindowInfo window_info;
 
     if(x11_get_active_window_info(&window_info)){
-        for(int i = 0; i < sizeof(terminal_class_names) / sizeof(char *); i++){
+        int terminal_count = sizeof(terminal_class_names) / sizeof(char *);
+        for(int i = 0; i < terminal_count; i++){
             if(strcmp((const char *) window_info.class, terminal_class_names[i]) == 0){
                 int child_pid;
                 get_process_child_pid(window_info.pid, &child_pid);
@@ -84,7 +87,7 @@ int main(int argc, char **argv){
         }
     }
 
-    if(direction == -1){
+    if((int) direction == -1){
         fprintf(stderr, "Unsupported direction. Valid options are: up, down, left, right\n");
         return 1;
     }

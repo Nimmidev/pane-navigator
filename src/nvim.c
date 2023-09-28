@@ -32,7 +32,7 @@ typedef struct {
 } NvimState;
 
 typedef struct __attribute__((__packed__)) {
-    char type;
+    unsigned char type;
     int16_t value;
 } msgpack_int16;
 
@@ -140,7 +140,7 @@ static void nvim_unpack_list_wins(msgpack_object *result, void *out){
 
     WindowIdArray *arr = out;
     arr->length = ids.size & 0xff;
-    for(int i = 0; i < ids.size; i++){
+    for(int i = 0; i < (int) ids.size; i++){
         *(arr->arr + i) = msgpack_int16_unpack(ids.ptr[i].via.ext.ptr);
     }
 }
@@ -187,7 +187,8 @@ static bool nvim_rpc(NvimState *nvim, NvimCommand *command, void *args, void *ou
     sbuf.alloc = sizeof(buffer);
     sbuf.data = buffer;
 
-    if((sbuf.size = recv(nvim->fd, sbuf.data, sbuf.alloc, 0)) == -1){
+    int size = sbuf.size = recv(nvim->fd, sbuf.data, sbuf.alloc, 0);
+    if(size == -1){
         fprintf(stderr, "nvim error receiving data\n");
         return false;
     }
@@ -199,10 +200,8 @@ static bool nvim_rpc(NvimState *nvim, NvimCommand *command, void *args, void *ou
     return true;
 }
 
-static bool nvim_get_windows(NvimState *nvim, Window *windows, size_t length){
-    assert(nvim->win_ids.length <= length);
-
-    for(int i = 0; i < nvim->win_ids.length; i++){
+static bool nvim_get_windows(NvimState *nvim, Window *windows){
+    for(int i = 0; i < (int) nvim->win_ids.length; i++){
         if(nvim->win_ids.arr[i] == nvim->win.id) continue;
         if(!nvim_rpc(nvim, &nvim_win_get_position, &nvim->win_ids.arr[i], &windows[i].pos)) return false;
         windows[i].id = nvim->win_ids.arr[i];
@@ -214,9 +213,9 @@ static bool nvim_get_windows(NvimState *nvim, Window *windows, size_t length){
 static inline bool nvim_get_win_horizontal(NvimState *nvim, int16_t *window_id, bool swap_x){
     Window windows[NVIM_MAX_OPEN_WINDOWS];
     WindowPos best = { .x = INT32_MAX, .y = INT32_MAX };
-    if(!nvim_get_windows(nvim, windows, NVIM_MAX_OPEN_WINDOWS)) return false;
+    if(!nvim_get_windows(nvim, windows)) return false;
 
-    for(int i = 0; i < nvim->win_ids.length; i++){
+    for(int i = 0; i < (int) nvim->win_ids.length; i++){
         if(nvim->win_ids.arr[i] == nvim->win.id) continue;
 
         WindowPos pos = {
@@ -226,7 +225,7 @@ static inline bool nvim_get_win_horizontal(NvimState *nvim, int16_t *window_id, 
 
         if(swap_x) pos.x = nvim->win.pos.x - windows[i].pos.x;
 
-        if(pos.x > 0 && (pos.x < best.x && abs(pos.y) <= best.y || abs(pos.y) < best.y)){
+        if(pos.x > 0 && ((pos.x < best.x && abs(pos.y) <= best.y) || abs(pos.y) < best.y)){
             best.y = abs(pos.y);
             best.x = pos.x;
             *window_id = nvim->win_ids.arr[i];
@@ -239,9 +238,9 @@ static inline bool nvim_get_win_horizontal(NvimState *nvim, int16_t *window_id, 
 static inline bool nvim_get_win_vertical(NvimState *nvim, int16_t *window_id, bool swap_y){
     Window windows[NVIM_MAX_OPEN_WINDOWS];
     WindowPos best = { .x = INT32_MAX, .y = INT32_MAX };
-    if(!nvim_get_windows(nvim, windows, NVIM_MAX_OPEN_WINDOWS)) return false;
+    if(!nvim_get_windows(nvim, windows)) return false;
 
-    for(int i = 0; i < nvim->win_ids.length; i++){
+    for(int i = 0; i < (int) nvim->win_ids.length; i++){
         if(nvim->win_ids.arr[i] == nvim->win.id) continue;
 
         WindowPos pos = {
@@ -251,7 +250,7 @@ static inline bool nvim_get_win_vertical(NvimState *nvim, int16_t *window_id, bo
 
         if(swap_y) pos.y = nvim->win.pos.y - windows[i].pos.y;
 
-        if(pos.y > 0 && (pos.y < best.y && abs(pos.x) <= best.x || abs(pos.x) < best.x)){
+        if(pos.y > 0 && ((pos.y < best.y && abs(pos.x) <= best.x) || abs(pos.x) < best.x)){
             best.y = pos.y;
             best.x = abs(pos.x);
             *window_id = nvim->win_ids.arr[i];

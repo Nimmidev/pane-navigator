@@ -7,7 +7,7 @@ bool get_cmd_output(const char *cmd, char *buffer, size_t buffer_size){
     if((fp = popen(cmd, "r")) == NULL) return false;
     size_t bytes_read = fread(buffer, 1, buffer_size, fp);
     buffer[bytes_read - 1] = '\0';
-    fclose(fp);
+    pclose(fp);
 
     return true;
 }

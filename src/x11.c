@@ -72,7 +72,7 @@ static bool x11_is_ewmh_supported(Display *xdpy, const char *feature){
 static bool x11_get_active_window(Display *xdpy, Window *window){
     Atom type;
     int size;
-    long nitems;
+    long nitems = 0;
     Atom request = XInternAtom(xdpy, "_NET_ACTIVE_WINDOW", false);
     Window root = XDefaultRootWindow(xdpy);
     unsigned char *data = x11_get_window_property_by_atom(xdpy, root, request, &nitems, &type, &size);
@@ -112,11 +112,11 @@ bool x11_get_window_class_name(Display *xdpy, Window window, unsigned char **cla
 int x11_get_window_pid(Display *xdpy, Window window){
     Atom type;
     int size;
-    long nitems;
+    long nitems = 0;
     Atom atom_NET_WM_PID = XInternAtom(xdpy, "_NET_WM_PID", false);
     unsigned char *data = x11_get_window_property_by_atom(xdpy, window, atom_NET_WM_PID, &nitems, &type, &size);
 
-    int pid;
+    int pid = 0;
     if(nitems > 0) pid = (int) *((unsigned long *) data);
     free(data);
 

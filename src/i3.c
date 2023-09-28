@@ -33,7 +33,7 @@ int i3_ipc_connect(){
     int fd;
     struct sockaddr_un addr;
 
-    char socket_path[1024], *iter = socket_path;
+    char socket_path[1024];
     get_cmd_output("i3 --get-socketpath", socket_path, 1024);
 
     addr.sun_family = AF_LOCAL;
@@ -62,7 +62,7 @@ void i3_ipc_send(int fd, struct i3_ipc_message *message, size_t message_bytes){
     }
 
     while((bytes_received = recv(fd, buffer, 1024, 0)) > 0){
-        struct i3_ipc_message *message = (struct i3_ipc_message *) &buffer;
+        DEBUG(struct i3_ipc_message *message = (struct i3_ipc_message *) &buffer;)
         DEBUG(printf("magic_str: %s\n", message->magic_str);)
         DEBUG(printf("payload_size: %u\n", message->payload_size);)
         DEBUG(printf("type: %u\n", message->type);)

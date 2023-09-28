@@ -34,7 +34,6 @@ bool tmux_get_session_id(int pid, char *session_id, size_t session_id_size){
         if(strcmp(line_start, pts) == 0){
             iter++;
             session_id_start = iter;
-            int s = iter - line_start;
             while(++iter < buffer + sizeof(buffer) && *iter != '\n');
             if(iter <= buffer + sizeof(buffer)) *iter = '\0';
             strcpy(buffer, session_id_start);
@@ -58,7 +57,7 @@ static bool tmux_has_pane_in_direction(const char *session_id, Direction directi
 
 bool tmux_get_pane_pid(const char *session_id, int *pid){
     char buffer[128];
-    char result[10], *iter = result;
+    char result[10];
 
     snprintf(buffer, sizeof(buffer), "tmux display-message -t %s: -p -F '#{pane_pid}'", session_id);
     if(!get_cmd_output(buffer, result, sizeof(result))) return false;
