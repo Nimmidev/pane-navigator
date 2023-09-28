@@ -18,6 +18,7 @@ bool tmux_get_session_id(int pid, char *session_id, size_t session_id_size){
 
     snprintf(buffer, sizeof(buffer), "/proc/%d/fd/0", pid);
     realpath(buffer, pts);
+    size_t buffer_content_size = strlen(buffer) + 1;
 
     if(!get_cmd_output("tmux list-clients -F '#{client_tty} #{client_session}'", buffer, sizeof(buffer))) return false;
     char *line_start, *session_id_start;
@@ -34,7 +35,7 @@ bool tmux_get_session_id(int pid, char *session_id, size_t session_id_size){
         if(strcmp(line_start, pts) == 0){
             iter++;
             session_id_start = iter;
-            while(++iter < buffer + sizeof(buffer) && *iter != '\n');
+            while(++iter <= buffer + buffer_content_size && *iter != '\n');
             if(iter <= buffer + sizeof(buffer)) *iter = '\0';
             strcpy(buffer, session_id_start);
             break;
