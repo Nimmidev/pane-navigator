@@ -5,6 +5,10 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -m64")
+set(CMAKE_C_FLAGS_DEBUG_INIT " -g -O0")
+set(CMAKE_C_FLAGS_RELEASE_INIT " -O3 -DNDEBUG")
+
 add_executable(pane-navigator src/main.c src/common.c src/i3.c src/tmux.c src/x11.c src/nvim.c)
 include_directories(src/include)
 
