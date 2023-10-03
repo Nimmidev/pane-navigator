@@ -68,6 +68,8 @@ static inline void move_pane(Direction direction){
                 break;
             }
         }
+
+        x11_free_window_info(&window_info);
     }
     if(!moved) i3_move_focus(direction);
 }

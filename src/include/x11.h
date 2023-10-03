@@ -9,5 +9,6 @@ typedef struct {
 } WindowInfo;
 
 bool x11_get_active_window_info(WindowInfo *window_info);
+void x11_free_window_info(WindowInfo *window_info);
 
 #endif

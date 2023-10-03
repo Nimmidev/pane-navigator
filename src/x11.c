@@ -140,6 +140,11 @@ bool x11_get_active_window_info(WindowInfo *window_info){
     if(!x11_get_active_window(xdpy, &window)) return false;
     if(!x11_get_window_class_name(xdpy, window, &window_info->class)) return false;
     window_info->pid = x11_get_window_pid(xdpy, window);
+    XCloseDisplay(xdpy);
 
     return true;
+}
+
+void x11_free_window_info(WindowInfo *window_info){
+    XFree(window_info->class);
 }
